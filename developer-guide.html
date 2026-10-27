@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NewsLens | Developer Guide</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .guide{max-width:980px;margin:auto;padding:70px 32px 100px}.guide h1{font-size:clamp(42px,6vw,72px);line-height:1;letter-spacing:-.07em;margin:0 0 20px}.guide h2{font-size:29px;letter-spacing:-.05em;margin:55px 0 16px;color:var(--teal-dark)}.guide h3{font-size:17px;margin:25px 0 8px}.guide p,.guide li{font-size:14px;color:var(--muted)}.guide ul{padding-left:22px}.guide li{margin:8px 0}.guide .intro{max-width:650px;font-size:16px}.guide-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:24px;margin:18px 0;box-shadow:var(--shadow)}.diagram{background:var(--teal-dark);color:#fff;border-radius:12px;padding:25px;overflow:auto;font:13px/2 'DM Mono',monospace;white-space:pre}.guide table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);font-size:13px}.guide th,.guide td{text-align:left;padding:13px;border-bottom:1px solid var(--line);vertical-align:top}.guide th{color:var(--teal);font:500 11px 'DM Mono'}.guide code{background:#edf3ef;color:var(--teal-dark);padding:3px 6px;border-radius:4px;font:12px 'DM Mono'}.guide .top-link{display:inline-block;margin-bottom:45px;color:var(--teal);font-size:12px;font-weight:700;text-decoration:none}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html"><span class="brand-mark">N</span><span>NewsLens</span></a>
+    <span class="course-tag">DEVELOPER NOTES · AAT PROJECT</span>
+  </header>
+  <main class="guide">
+    <a class="top-link" href="index.html">← Back to NewsLens</a>
+    <p class="eyebrow">DEVELOPER GUIDE / VERSION 1</p>
+    <h1>How NewsLens works</h1>
+    <p class="intro">NewsLens is a supervised NLP application that screens news text for patterns associated with misleading examples. It provides a risk signal and reasons for review; it does not prove whether a claim is true.</p>
+
+    <h2>1. Quick start</h2>
+    <div class="guide-card">
+      <h3>Install dependencies</h3>
+      <p>Use Python 3.10 or newer from the project folder:</p>
+      <p><code>python -m venv .venv</code><br><code>.\.venv\Scripts\Activate.ps1</code><br><code>pip install -r requirements.txt</code></p>
+      <h3>Prepare and train</h3>
+      <p>Place a legitimate labelled CSV at <code>data/raw/news.csv</code>. It must contain <code>text</code> and <code>label</code> columns. See <code>data/README.md</code> for the accepted labels and data requirements.</p>
+      <p><code>python training/train_model.py --input data/raw/news.csv</code></p>
+      <h3>Start the application</h3>
+      <p><code>python server.py</code></p>
+      <p>Open <code>http://127.0.0.1:5000</code> in a browser. The model must be trained before analysis is available.</p>
+    </div>
+
+    <h2>2. End-to-end workflow</h2>
+    <div class="diagram">DATASET
+      ↓
+Validate rows and labels → Stratified train/test split
+      ↓
+spaCy tokenization → Word TF-IDF + character TF-IDF
+      ↓
+Logistic Regression training → Metrics + model.joblib
+      ↓
+Browser text → POST /api/analyze → Model probability
+      ↓
+Risk score + language signals → Human verifies original sources</div>
+    <div class="guide-card"><p><strong>Training:</strong> The training script validates the dataset, creates word and character features, trains a balanced Logistic Regression classifier, evaluates it on held-out data, and saves a model artifact.</p><p><strong>Inference:</strong> The Flask API loads the saved artifact, validates the submitted text, calculates the probability of the misleading class, and returns a label, score, metrics, and supporting signals.</p><p><strong>Review:</strong> The user checks the article’s publisher, author, date, evidence, and independent sources before making a decision.</p></div>
+
+    <h2>3. High-level design (HLD)</h2>
+    <table><thead><tr><th>Component</th><th>Responsibility</th></tr></thead><tbody>
+      <tr><td>Web UI</td><td>Accepts news text, displays the score, language signals, warnings, and project documentation.</td></tr>
+      <tr><td>Flask API</td><td>Serves the page, validates requests, exposes health status, and performs inference.</td></tr>
+      <tr><td>NLP pipeline</td><td>Uses spaCy tokenization and TF-IDF feature extraction for words and character patterns.</td></tr>
+      <tr><td>Classifier</td><td>Logistic Regression estimates the misleading-language probability.</td></tr>
+      <tr><td>Model artifact</td><td>Stores the trained pipeline and metadata such as metrics and dataset hash.</td></tr>
+      <tr><td>Human reviewer</td><td>Performs final fact-checking; the system is not an autonomous truth engine.</td></tr>
+    </tbody></table>
+
+    <h2>4. Low-level design (LLD)</h2>
+    <div class="guide-card">
+      <h3>Training modules</h3>
+      <ul><li><code>load_dataset()</code> reads and validates the CSV.</li><li><code>tokenize_text()</code> in <code>nlp_utils.py</code> supplies the shared spaCy tokenizer.</li><li><code>FeatureUnion</code> combines word n-grams and character n-grams.</li><li><code>LogisticRegression</code> trains the binary classifier.</li><li><code>classification_report</code> calculates evaluation metrics.</li><li><code>joblib.dump()</code> writes the versioned model artifact.</li></ul>
+      <h3>API modules</h3>
+      <ul><li><code>GET /</code> serves the user interface.</li><li><code>GET /api/health</code> reports whether a valid model is loaded.</li><li><code>POST /api/analyze</code> accepts <code>{"text":"..."}</code> and returns the prediction.</li><li><code>language_signals()</code> adds readable indicators such as sensational words, emphasis, evidence terms, and text statistics.</li></ul>
+    </div>
+    <h3>Analysis request</h3>
+    <div class="diagram">1. User enters text
+2. Browser sends JSON to POST /api/analyze
+3. API rejects empty or oversized input
+4. Saved pipeline transforms text into TF-IDF vectors
+5. Classifier returns probability
+6. API maps probability to a cautious label
+7. Browser renders score, signals, and warning</div>
+
+    <h2>5. How to analyse news</h2>
+    <ol><li>Start the trained server.</li><li>Open the NewsLens home page.</li><li>Paste a headline or short article into the text box.</li><li>Select <strong>Analyse text</strong>.</li><li>Read the risk score and the signals that influenced the result.</li><li>Verify the original source and at least one independent reliable source.</li></ol>
+
+    <h2>6. Developer notes</h2>
+    <div class="guide-card"><ul><li>Do not train on the small example data or claim high accuracy without a real labelled dataset.</li><li>Do not interpret a high score as proof of fake news or a low score as proof of truth.</li><li>Keep training and test articles separate to prevent data leakage.</li><li>Record dataset source, licence, label definition, class distribution, and metrics in the report.</li><li>For college deployment, use HTTPS and a production WSGI server such as Gunicorn.</li><li>Before public use, add authentication, rate limiting, monitoring, model versioning, and a reviewed data-retention policy.</li></ul></div>
+  </main>
+</body>
+</html>

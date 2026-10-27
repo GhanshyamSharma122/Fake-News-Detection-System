@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="NewsLens is an explainable fake news detection NLP project for academic demonstration.">
+  <title>NewsLens | Explainable Fake News Detection</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="NewsLens home"><span class="brand-mark">N</span><span>NewsLens</span></a>
+    <nav aria-label="Primary navigation">
+      <a href="#detector">Detector</a><a href="#how-it-works">How it works</a><a href="#vocabulary">Vocabulary</a><a href="#ethics">Ethics</a><a href="developer-guide.html">Developer guide</a>
+    </nav>
+    <span class="course-tag">AAT · NLP APPLICATION</span>
+  </header>
+
+  <main id="top">
+    <section class="hero page-wrap">
+      <div class="hero-copy">
+        <p class="eyebrow">EXPLAINABLE NLP · ACADEMIC PROTOTYPE</p>
+        <h1>Pause. Read.<br><em>Verify.</em></h1>
+        <p class="hero-text">NewsLens analyses the language of a news claim and highlights signals that deserve verification. It is a learning tool—not a replacement for journalists, fact-checkers, or primary sources.</p>
+        <div class="hero-actions"><a class="button button-primary" href="#detector">Try the detector <span>↓</span></a><a class="text-link" href="#how-it-works">Explore the design →</a></div>
+      </div>
+      <div class="hero-card" aria-label="Project summary">
+        <div class="orb"><span>NL</span></div>
+        <div class="hero-stat"><span>PROJECT SCOPE</span><strong>10% AAT</strong></div>
+        <div class="hero-stat"><span>OUTPUT</span><strong>Prediction + evidence</strong></div>
+        <div class="hero-stat"><span>APPROACH</span><strong>Human-in-the-loop</strong></div>
+      </div>
+    </section>
+
+    <section id="detector" class="detector-section page-wrap">
+      <div class="section-heading"><div><p class="eyebrow">01 / LIVE DEMONSTRATION</p><h2>Test a news claim</h2></div><p class="section-note">Paste a headline or short article. The trained model analyses it through the Flask API.</p></div>
+      <div class="detector-grid">
+        <div class="input-panel panel">
+          <label for="news-input">NEWS TEXT <span id="char-count">0 / 2,000</span></label>
+          <textarea id="news-input" maxlength="2000" placeholder="Example: Scientists publish a peer-reviewed study showing...">Scientists publish a peer-reviewed study showing that regular sleep improves memory in adults.</textarea>
+          <div class="input-footer"><div class="privacy-note"><span class="status-dot"></span> Not stored by this application</div><button id="analyse-btn" class="button button-primary">Analyse text <span>→</span></button></div>
+          <div class="sample-row"><span>Try a sample:</span><button data-sample="credible">Credible report</button><button data-sample="suspicious">Suspicious claim</button><button data-sample="opinion">Opinion</button></div>
+        </div>
+        <div class="result-panel panel" id="result-panel" aria-live="polite">
+          <div class="result-top"><span class="eyebrow">ANALYSIS RESULT</span><span class="confidence-badge" id="confidence-badge">READY</span></div>
+          <div class="result-main"><div class="score-ring" id="score-ring"><strong id="score-value">—</strong><span>risk score</span></div><div><p class="result-label" id="result-label">Waiting for input</p><p class="result-description" id="result-description">Run an analysis to see the language signals detected in your text.</p></div></div>
+          <div class="signal-list" id="signal-list"><div class="empty-signal">Your explanation will appear here.</div></div>
+          <div class="result-disclaimer">A risk score is a screening signal, not a verdict. Verify important claims with reliable sources.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="how-it-works" class="process-section page-wrap">
+      <div class="section-heading"><div><p class="eyebrow">02 / HIGH-LEVEL DESIGN</p><h2>From words to evidence</h2></div><p class="section-note">A compact pipeline makes every decision visible enough to discuss in a classroom.</p></div>
+      <div class="pipeline" aria-label="NLP processing pipeline">
+        <article class="pipeline-step"><span class="step-number">01</span><div class="step-icon">Aa</div><h3>Preprocess</h3><p>Normalize case, remove noise, split the text into sentences and tokens.</p><code>clean(text) → tokens</code></article>
+        <article class="pipeline-step"><span class="step-number">02</span><div class="step-icon">⌕</div><h3>Extract features</h3><p>Inspect sentiment, sensational words, punctuation, source cues, and readability.</p><code>features = φ(tokens)</code></article>
+        <article class="pipeline-step"><span class="step-number">03</span><div class="step-icon">∑</div><h3>Score signals</h3><p>Combine interpretable weighted signals into a normalized risk score from 0–100.</p><code>score = Σ(wᵢ × fᵢ)</code></article>
+        <article class="pipeline-step"><span class="step-number">04</span><div class="step-icon">✓</div><h3>Explain result</h3><p>Show a cautious label and the exact signals that influenced the estimate.</p><code>result + evidence</code></article>
+      </div>
+      <div class="architecture panel"><div class="architecture-title"><p class="eyebrow">SYSTEM ARCHITECTURE</p><h3>Human-in-the-loop design</h3></div><div class="architecture-flow"><span>Reader enters text</span><b>→</b><span>NLP pipeline</span><b>→</b><span>Explainable score</span><b>→</b><span>Human verifies sources</span></div></div>
+    </section>
+
+    <section id="vocabulary" class="vocab-section page-wrap"><div class="section-heading"><div><p class="eyebrow">03 / KEY VOCABULARY</p><h2>Words behind the model</h2></div><p class="section-note">Use these terms in your presentation and report to explain the implementation precisely.</p></div><div class="vocab-grid"><div class="vocab-card"><span>NLP</span><p>Natural Language Processing: methods that help computers work with human language.</p></div><div class="vocab-card"><span>Tokenization</span><p>Breaking a sentence into smaller units such as words or punctuation marks.</p></div><div class="vocab-card"><span>Feature</span><p>A measurable property of text used by a classifier, such as exclamation count.</p></div><div class="vocab-card"><span>Sentiment</span><p>The emotional polarity of language: positive, negative, or neutral.</p></div><div class="vocab-card"><span>Classifier</span><p>A model that maps input text to categories or risk levels.</p></div><div class="vocab-card"><span>Precision</span><p>Of the items predicted as suspicious, how many were actually suspicious.</p></div><div class="vocab-card"><span>Recall</span><p>Of all suspicious items, how many the system successfully detected.</p></div><div class="vocab-card"><span>Explainability</span><p>Showing understandable reasons behind a model output.</p></div></div></section>
+
+    <section id="ethics" class="ethics-section page-wrap"><div class="ethics-copy"><p class="eyebrow">04 / INTEGRITY & ETHICS</p><h2>Detection should create care, not certainty.</h2><p>Language patterns can identify content worth checking, but they cannot prove whether a claim is true. NewsLens avoids collecting user text, shows evidence for its score, and asks people to consult trusted sources before sharing.</p></div><div class="ethics-list"><div><span>01</span><p><strong>Bias awareness</strong> — training data may reflect political, cultural, or language bias.</p></div><div><span>02</span><p><strong>Human review</strong> — a low score does not certify truth, and a high score does not prove falsity.</p></div><div><span>03</span><p><strong>Privacy first</strong> — this demonstration performs analysis locally and does not store submissions.</p></div></div></section>
+
+    <section class="report-section page-wrap"><div><p class="eyebrow">05 / AAT READY</p><h2>Small scope. Complete story.</h2><p>This prototype covers a realistic 10%-weight assessment: a working demonstration, NLP mechanisms, high-level design, ethical discussion, and measurable limitations.</p></div><div class="rubric-grid"><div><strong>08</strong><span>Scenario selection</span></div><div><strong>08</strong><span>Ethical behaviour</span></div><div><strong>08</strong><span>Application</span></div><div><strong>08</strong><span>Report</span></div><div><strong>04</strong><span>Presentation</span></div><div><strong>04</strong><span>Discussion</span></div></div></section>
+  </main>
+  <footer class="site-footer page-wrap"><span>NewsLens · Fake News Detection System</span><span>Built for NLP AAT demonstration · 2026</span></footer>
+  <script src="app.js"></script>
+</body>
+</html>

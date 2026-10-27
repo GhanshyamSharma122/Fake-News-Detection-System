@@ -22,6 +22,8 @@
 
     <h2>1. Quick start</h2>
     <div class="guide-card">
+      <h3>One-click Windows start</h3>
+      <p>Double-click <code>run.bat</code>. It creates the virtual environment, installs dependencies, trains the model if <code>models/newslens.joblib</code> is missing, and starts the server.</p>
       <h3>Install dependencies</h3>
       <p>Use Python 3.10 or newer from the project folder:</p>
       <p><code>python -m venv .venv</code><br><code>.\.venv\Scripts\Activate.ps1</code><br><code>pip install -r requirements.txt</code></p>
@@ -62,7 +64,29 @@
       <p>A model can learn publisher identity, political vocabulary, writing style, or dataset artefacts instead of factuality. A legitimate opinion, satire, translated article, or breaking story may be flagged. Therefore the output is a triage signal: inspect the original source, author, publication date, cited evidence, and independent reporting before sharing.</p>
     </div>
 
-    <h2>4. End-to-end workflow</h2>
+    <h2>4. Complete training process</h2>
+    <div class="guide-card">
+      <h3>Step 1: Choose and inspect the data</h3>
+      <p>The project reads <code>data/Fake.csv</code> and <code>data/True.csv</code>. The filename supplies the binary label, while the title and article body supply the text. The loader ignores empty rows and combines the title with the body for the article model. It also keeps the title separately for the headline model.</p>
+      <h3>Step 2: Validate the input</h3>
+      <p>The trainer checks that the dataset exists, contains at least 1,000 usable rows, and contains exactly two recognised labels. It reports the class distribution. This prevents a tiny or one-class file from being mistaken for a meaningful training run.</p>
+      <h3>Step 3: Split before learning</h3>
+      <p>The complete dataset is split into 80% training data and 20% held-out test data using stratification and random seed 42. The classifier sees only the training portion during fitting. The test portion is used once for an unbiased first evaluation.</p>
+      <h3>Step 4: Tokenize and create features</h3>
+      <p>Each text is converted to tokens using spaCy when available. The tokenizer fallback is used only when spaCy is unavailable. TF-IDF then converts the tokens into a bounded numerical vocabulary of informative words. Rare and overly common terms are controlled using minimum and maximum document-frequency settings.</p>
+      <h3>Step 5: Train two classifiers</h3>
+      <p>NewsLens fits one balanced Logistic Regression classifier on full article text and another on headlines only. Class balancing reduces the effect of the small difference between the two dataset classes. The models learn feature weights from labelled examples; they do not browse the internet or independently verify facts.</p>
+      <h3>Step 6: Evaluate</h3>
+      <p>Predictions on the held-out rows are compared with their labels. Accuracy measures total correct predictions. Precision measures how many flagged items were actually in the flagged class. Recall measures how many flagged-class items were found. F1 combines precision and recall into one balanced score. Separate metrics are saved for the article and headline models.</p>
+      <h3>Step 7: Save the artifact</h3>
+      <p>The two fitted pipelines are saved to <code>models/newslens.joblib</code>. A JSON metadata file stores the dataset name, SHA-256 hash, label definition, row counts, class distribution, creation time, and evaluation results. The API loads this artifact; it does not train during normal startup.</p>
+      <h3>Step 8: Use the trained model</h3>
+      <p>When the user submits text, the API selects the headline model for inputs up to 60 words and the article model for longer text. It transforms the text using the saved vocabulary, obtains the misleading-class probability, maps it to a cautious label, and returns the result with supporting language signals.</p>
+      <h3>When does training happen?</h3>
+      <p><code>run.bat</code> trains only when <code>models/newslens.joblib</code> does not exist. If the model is already present, it prints “Existing trained model found. Skipping training.” To intentionally retrain after changing the dataset or code, run <code>python training/train_model.py --input data</code> manually.</p>
+    </div>
+
+    <h2>5. End-to-end workflow</h2>
     <div class="diagram">DATASET
       ↓
 Validate rows and labels → Stratified train/test split
@@ -76,7 +100,7 @@ Browser text → POST /api/analyze → Model probability
 Risk score + language signals → Human verifies original sources</div>
     <div class="guide-card"><p><strong>Training:</strong> The training script validates the dataset, creates bounded word features, trains a balanced Logistic Regression classifier, evaluates it on held-out data, and saves a model artifact.</p><p><strong>Inference:</strong> The Flask API loads the saved artifact, validates the submitted text, calculates the probability of the misleading class, and returns a label, score, metrics, and supporting signals.</p><p><strong>Review:</strong> The user checks the article’s publisher, author, date, evidence, and independent sources before making a decision.</p></div>
 
-    <h2>5. High-level design (HLD)</h2>
+    <h2>6. High-level design (HLD)</h2>
     <table><thead><tr><th>Component</th><th>Responsibility</th></tr></thead><tbody>
       <tr><td>Web UI</td><td>Accepts news text, displays the score, language signals, warnings, and project documentation.</td></tr>
       <tr><td>Flask API</td><td>Serves the page, validates requests, exposes health status, and performs inference.</td></tr>
@@ -86,7 +110,7 @@ Risk score + language signals → Human verifies original sources</div>
       <tr><td>Human reviewer</td><td>Performs final fact-checking; the system is not an autonomous truth engine.</td></tr>
     </tbody></table>
 
-    <h2>6. Low-level design (LLD)</h2>
+    <h2>7. Low-level design (LLD)</h2>
     <div class="guide-card">
       <h3>Training modules</h3>
       <ul><li><code>load_input()</code> reads either a normal labelled CSV or the ISOT <code>Fake.csv</code>/<code>True.csv</code> folder.</li><li><code>tokenize_text()</code> in <code>nlp_utils.py</code> supplies the shared spaCy tokenizer.</li><li><code>TfidfVectorizer</code> creates bounded word unigram features.</li><li>Two <code>LogisticRegression</code> models are trained: one for full articles and one for headlines.</li><li><code>classification_report</code> calculates separate evaluation metrics.</li><li><code>joblib.dump()</code> writes both pipelines into the model artifact.</li></ul>
@@ -102,14 +126,14 @@ Risk score + language signals → Human verifies original sources</div>
 6. API maps probability to a cautious label
 7. Browser renders score, signals, and warning</div>
 
-    <h2>7. How to analyse news</h2>
+    <h2>8. How to analyse news</h2>
     <ol><li>Start the trained server.</li><li>Open the NewsLens home page.</li><li>Paste a headline or short article into the text box.</li><li>Select <strong>Analyse text</strong>.</li><li>Read the risk score and the signals that influenced the result.</li><li>Verify the original source and at least one independent reliable source.</li></ol>
 
     <div class="guide-card"><h3>Local verification completed</h3><p>The downloaded folder contained 44,898 usable articles. The model used 35,918 training rows and 8,980 held-out rows, producing 0.9931 accuracy and 0.9934 F1 on a random stratified split. A real row from <code>True.csv</code> scored 1, and a real row from <code>Fake.csv</code> scored 100. These results are useful for demonstrating the flow, but they are not proof of real-world accuracy; publisher and topic artefacts can make random splits optimistic.</p></div>
 
-    <h2>8. Developer notes</h2>
+    <h2>9. Developer notes</h2>
     <div class="guide-card"><ul><li>Do not train on the small example data or claim high accuracy without a real labelled dataset.</li><li>Do not interpret a high score as proof of fake news or a low score as proof of truth.</li><li>Keep training and test articles separate to prevent data leakage.</li><li>Record dataset source, licence, label definition, class distribution, and metrics in the report.</li><li>For college deployment, use HTTPS and a production WSGI server such as Gunicorn.</li><li>Before public use, add authentication, rate limiting, monitoring, model versioning, and a reviewed data-retention policy.</li></ul></div>
-    <h2>9. Smoke-test file</h2>
+    <h2>10. Smoke-test file</h2>
     <div class="guide-card"><p>Verified headlines for a quick demonstration are stored in <code>data/test_cases.csv</code>. Paste each <code>text</code> value into the detector and compare it with <code>expected_label</code>. The recorded score is informational and can change after retraining.</p></div>
   </main>
 </body>

@@ -10,6 +10,8 @@ The training script refuses fewer than 1,000 rows. This prevents a toy dataset f
 
 ## Run locally
 
+On Windows, double-click `run.bat`. It creates the virtual environment, installs dependencies, trains the model if necessary, and starts the application.
+
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1

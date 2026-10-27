@@ -1,0 +1,11 @@
+id,type,text,expected_label,observed_score
+REAL-1,real,"As U.S. budget fight looms, Republicans flip their fiscal script",Lower-risk language,8
+REAL-2,real,"U.S. military to accept transgender recruits on Monday: Pentagon",Lower-risk language,6
+REAL-3,real,"FBI Russia probe helped by Australian diplomat tip-off: NYT",Lower-risk language,9
+REAL-4,real,"White House, Congress prepare for talks on spending, immigration",Lower-risk language,2
+REAL-5,real,"Trump wants Postal Service to charge much more for Amazon shipments",Lower-risk language,33
+FAKE-1,fake,"Donald Trump Sends Out Embarrassing New Year’s Eve Message; This is Disturbing",High-risk language,98
+FAKE-2,fake,"Trump Is So Obsessed He Even Has Obama’s Name Coded Into His Website",High-risk language,100
+FAKE-3,fake,"Pope Francis Just Called Out Donald Trump During His Christmas Speech",High-risk language,98
+FAKE-4,fake,"WATCH: Brand-New Pro-Trump Ad Features So Much A** Kissing It Will Make You Sick",High-risk language,99
+FAKE-5,fake,"SHOCKING secret cure doctors do not want you to know!!!",High-risk language,88

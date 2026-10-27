@@ -53,7 +53,7 @@
       <h3>What does the model learn?</h3>
       <p>First, the text is converted into numbers. Bounded word TF-IDF gives higher weight to informative words that are uncommon across the dataset. Limiting the vocabulary makes the system practical to train and deploy on a college computer while retaining the core NLP concept. These numbers form a feature vector for each article.</p>
       <h3>How does classification work?</h3>
-      <p>Logistic Regression learns weights for those features using labelled training examples. A positive weight means a feature is associated with the misleading class in the training data; a negative weight means it is more associated with the credible class. At prediction time, the model produces a probability. NewsLens converts that probability into a cautious risk score and asks the reader to verify the source.</p>
+      <p>Logistic Regression learns weights for those features using labelled training examples. A positive weight means a feature is associated with the misleading class in the training data; a negative weight means it is more associated with the credible class. NewsLens trains both an article model and a headline model. Inputs up to 60 words use the headline model; longer text uses the article model. At prediction time, the selected model produces a probability that becomes a cautious risk score.</p>
       <h3>Why split training and testing data?</h3>
       <p>The model must be tested on articles it never saw during training. Otherwise, the score measures memorisation rather than generalisation. A stratified split keeps the class proportions similar, while a separate validation set or cross-validation can be used during model selection. Duplicate articles, syndicated copies, and articles from the same event must be handled carefully to prevent data leakage.</p>
       <h3>How do we judge quality?</h3>
@@ -89,7 +89,7 @@ Risk score + language signals → Human verifies original sources</div>
     <h2>6. Low-level design (LLD)</h2>
     <div class="guide-card">
       <h3>Training modules</h3>
-      <ul><li><code>load_input()</code> reads either a normal labelled CSV or the ISOT <code>Fake.csv</code>/<code>True.csv</code> folder.</li><li><code>tokenize_text()</code> in <code>nlp_utils.py</code> supplies the shared spaCy tokenizer.</li><li><code>TfidfVectorizer</code> creates bounded word unigram features.</li><li><code>LogisticRegression</code> trains the binary classifier.</li><li><code>classification_report</code> calculates evaluation metrics.</li><li><code>joblib.dump()</code> writes the versioned model artifact.</li></ul>
+      <ul><li><code>load_input()</code> reads either a normal labelled CSV or the ISOT <code>Fake.csv</code>/<code>True.csv</code> folder.</li><li><code>tokenize_text()</code> in <code>nlp_utils.py</code> supplies the shared spaCy tokenizer.</li><li><code>TfidfVectorizer</code> creates bounded word unigram features.</li><li>Two <code>LogisticRegression</code> models are trained: one for full articles and one for headlines.</li><li><code>classification_report</code> calculates separate evaluation metrics.</li><li><code>joblib.dump()</code> writes both pipelines into the model artifact.</li></ul>
       <h3>API modules</h3>
       <ul><li><code>GET /</code> serves the user interface.</li><li><code>GET /api/health</code> reports whether a valid model is loaded.</li><li><code>POST /api/analyze</code> accepts <code>{"text":"..."}</code> and returns the prediction.</li><li><code>language_signals()</code> adds readable indicators such as sensational words, emphasis, evidence terms, and text statistics.</li></ul>
     </div>
@@ -109,6 +109,8 @@ Risk score + language signals → Human verifies original sources</div>
 
     <h2>8. Developer notes</h2>
     <div class="guide-card"><ul><li>Do not train on the small example data or claim high accuracy without a real labelled dataset.</li><li>Do not interpret a high score as proof of fake news or a low score as proof of truth.</li><li>Keep training and test articles separate to prevent data leakage.</li><li>Record dataset source, licence, label definition, class distribution, and metrics in the report.</li><li>For college deployment, use HTTPS and a production WSGI server such as Gunicorn.</li><li>Before public use, add authentication, rate limiting, monitoring, model versioning, and a reviewed data-retention policy.</li></ul></div>
+    <h2>9. Smoke-test file</h2>
+    <div class="guide-card"><p>Verified headlines for a quick demonstration are stored in <code>data/test_cases.csv</code>. Paste each <code>text</code> value into the detector and compare it with <code>expected_label</code>. The recorded score is informational and can change after retraining.</p></div>
   </main>
 </body>
 </html>

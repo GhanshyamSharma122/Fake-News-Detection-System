@@ -73,7 +73,9 @@ def analyze():
         artifact = load_model()
     except RuntimeError as error:
         return jsonify({"error": str(error)}), 503
-    probability = float(artifact["pipeline"].predict_proba([text])[0][1])
+    use_headline_model = len(text.split()) <= 60 and "headline_pipeline" in artifact
+    selected_pipeline = artifact["headline_pipeline"] if use_headline_model else artifact["pipeline"]
+    probability = float(selected_pipeline.predict_proba([text])[0][1])
     score = round(probability * 100)
     label = "High-risk language" if score >= 65 else "Needs verification" if score >= 38 else "Lower-risk language"
     description = (
@@ -81,7 +83,7 @@ def analyze():
         if score >= 65 else "The model found mixed or limited signals. Compare this claim with independent, reliable sources."
         if score >= 38 else "The model found fewer misleading-language patterns, but this does not prove the claim is true."
     )
-    return jsonify({"score": score, "label": label, "description": description, "signals": language_signals(text), "model": "Bounded word TF-IDF + Logistic Regression", "metrics": artifact["metadata"]["metrics"]})
+    return jsonify({"score": score, "label": label, "description": description, "signals": language_signals(text), "model": "Headline TF-IDF + Logistic Regression" if use_headline_model else "Article TF-IDF + Logistic Regression", "input_mode": "headline" if use_headline_model else "article", "metrics": artifact["metadata"]["headline_metrics"] if use_headline_model else artifact["metadata"]["metrics"]})
 
 
 if __name__ == "__main__":

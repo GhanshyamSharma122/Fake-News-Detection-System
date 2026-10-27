@@ -15,6 +15,8 @@ python training/train_model.py --input data
 
 The trainer combines each article title and body, assigns labels from the filenames, and saves the model under `models/newslens.joblib`.
 
+Verified smoke-test headlines are stored in `data/test_cases.csv`. Paste the `text` values into the web application and compare the result with `expected_label`. The `observed_score` values were recorded from the current model artifact and may change after retraining.
+
 For another dataset, place a legally obtained labelled CSV in `data/raw/news.csv` with these columns:
 
 ```csv

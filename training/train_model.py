@@ -39,25 +39,27 @@ def parse_arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def load_csv(path: Path, text_column: str, label_column: str, forced_label: str | None = None) -> tuple[list[str], list[str]]:
-    texts, labels = [], []
+def load_csv(path: Path, text_column: str, label_column: str, forced_label: str | None = None) -> tuple[list[str], list[str], list[str]]:
+    texts, labels, headlines = [], [], []
     with path.open(newline="", encoding="utf-8", errors="replace") as stream:
         for row in csv.DictReader(stream):
-            text = row.get(text_column, "") if forced_label is None else f"{row.get('Title', row.get('title', ''))}\n{row.get('Text', row.get('text', ''))}"
+            headline = row.get("title", row.get("Title", ""))
+            text = row.get(text_column, "") if forced_label is None else f"{headline}\n{row.get('Text', row.get('text', ''))}"
             label = row.get(label_column, "") if forced_label is None else forced_label
             if text.strip() and label.strip():
                 texts.append(text)
                 labels.append(label)
-    return texts, labels
+                headlines.append(headline.strip() or text)
+    return texts, labels, headlines
 
 
-def load_input(path: Path, text_column: str, label_column: str) -> tuple[list[str], list[str], str]:
+def load_input(path: Path, text_column: str, label_column: str) -> tuple[list[str], list[str], list[str], str]:
     if path.is_dir() and (path / "Fake.csv").exists() and (path / "True.csv").exists():
-        fake_texts, fake_labels = load_csv(path / "Fake.csv", text_column, label_column, "fake")
-        true_texts, true_labels = load_csv(path / "True.csv", text_column, label_column, "true")
-        return fake_texts + true_texts, fake_labels + true_labels, "ISOT Fake.csv + True.csv"
-    texts, labels = load_csv(path, text_column, label_column)
-    return texts, labels, str(path)
+        fake_texts, fake_labels, fake_headlines = load_csv(path / "Fake.csv", text_column, label_column, "fake")
+        true_texts, true_labels, true_headlines = load_csv(path / "True.csv", text_column, label_column, "true")
+        return fake_texts + true_texts, fake_labels + true_labels, fake_headlines + true_headlines, "ISOT Fake.csv + True.csv"
+    texts, labels, headlines = load_csv(path, text_column, label_column)
+    return texts, labels, headlines, str(path)
 
 
 def input_hash(path: Path) -> str:
@@ -76,7 +78,7 @@ def main() -> int:
     if not arguments.input.exists():
         print(f"Dataset not found: {arguments.input}", file=sys.stderr)
         return 1
-    texts, raw_labels, dataset_name = load_input(arguments.input, arguments.text_column, arguments.label_column)
+    texts, raw_labels, headlines, dataset_name = load_input(arguments.input, arguments.text_column, arguments.label_column)
     if len(texts) < 1000:
         print("Refusing to train: provide at least 1,000 reviewed rows for a meaningful experiment.", file=sys.stderr)
         return 1
@@ -84,34 +86,41 @@ def main() -> int:
     if any(label is None for label in labels) or len(set(labels)) != 2:
         print("Labels must map to two classes: true/false, real/fake, or 0/1.", file=sys.stderr)
         return 1
-    train_texts, test_texts, train_labels, test_labels = train_test_split(
-        texts, labels, test_size=arguments.test_size, random_state=42, stratify=labels
+    train_texts, test_texts, train_headlines, test_headlines, train_labels, test_labels = train_test_split(
+        texts, headlines, labels, test_size=arguments.test_size, random_state=42, stratify=labels
     )
-    pipeline = Pipeline([
+    def build_pipeline() -> Pipeline:
+        return Pipeline([
         ("features", TfidfVectorizer(tokenizer=tokenize_text, token_pattern=None, ngram_range=(1, 1), min_df=3, max_df=0.98, max_features=50_000, sublinear_tf=True)),
         ("classifier", LogisticRegression(solver="liblinear", max_iter=200, class_weight="balanced", random_state=42)),
-    ])
-    pipeline.fit(train_texts, train_labels)
-    predictions = pipeline.predict(test_texts)
-    report = classification_report(test_labels, predictions, output_dict=True, zero_division=0)
-    metrics = {
-        "accuracy": round(float(accuracy_score(test_labels, predictions)), 4),
-        "precision": round(float(precision_score(test_labels, predictions, zero_division=0)), 4),
-        "recall": round(float(recall_score(test_labels, predictions, zero_division=0)), 4),
-        "f1": round(float(f1_score(test_labels, predictions, zero_division=0)), 4),
-        "classification_report": report,
-        "training_rows": len(train_texts),
-        "test_rows": len(test_texts),
-        "class_distribution": dict(Counter(labels)),
-    }
+        ])
+
+    def train_and_evaluate(train_values: list[str], test_values: list[str]) -> tuple[Pipeline, dict[str, object]]:
+        fitted = build_pipeline()
+        fitted.fit(train_values, train_labels)
+        predictions = fitted.predict(test_values)
+        return fitted, {
+            "accuracy": round(float(accuracy_score(test_labels, predictions)), 4),
+            "precision": round(float(precision_score(test_labels, predictions, zero_division=0)), 4),
+            "recall": round(float(recall_score(test_labels, predictions, zero_division=0)), 4),
+            "f1": round(float(f1_score(test_labels, predictions, zero_division=0)), 4),
+            "classification_report": classification_report(test_labels, predictions, output_dict=True, zero_division=0),
+            "training_rows": len(train_values),
+            "test_rows": len(test_values),
+            "class_distribution": dict(Counter(labels)),
+        }
+
+    article_pipeline, article_metrics = train_and_evaluate(train_texts, test_texts)
+    headline_pipeline, headline_metrics = train_and_evaluate(train_headlines, test_headlines)
     artifact = {
-        "pipeline": pipeline,
-        "metadata": {"created_at": datetime.now(timezone.utc).isoformat(), "dataset": dataset_name, "dataset_sha256": input_hash(arguments.input), "metrics": metrics, "label_definition": {"0": "real/credible", "1": "fake/misleading"}},
+        "pipeline": article_pipeline,
+        "headline_pipeline": headline_pipeline,
+        "metadata": {"created_at": datetime.now(timezone.utc).isoformat(), "dataset": dataset_name, "dataset_sha256": input_hash(arguments.input), "metrics": article_metrics, "headline_metrics": headline_metrics, "label_definition": {"0": "real/credible", "1": "fake/misleading"}},
     }
     arguments.output.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(artifact, arguments.output)
     arguments.output.with_suffix(".json").write_text(json.dumps(artifact["metadata"], indent=2, default=str), encoding="utf-8")
-    print(json.dumps(metrics, indent=2, default=str))
+    print(json.dumps({"article_model": article_metrics, "headline_model": headline_metrics}, indent=2, default=str))
     print(f"Saved model artifact to {arguments.output}")
     return 0
 

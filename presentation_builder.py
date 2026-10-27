@@ -105,8 +105,15 @@ def slide_cover(prs):
     add_text(slide, 0.76, 2.48, 6.5, 0.8, "Explainable fake news detection\nusing natural language processing", 22, MUTED, "Aptos", False)
     add_line(slide, 0.76, 3.65, 5.5, 3.65, GREEN, 2)
     add_text(slide, 0.76, 4.05, 2.2, 0.24, "PRESENTED BY", 9, GREEN, "Courier New", True)
-    add_text(slide, 0.76, 4.38, 4.7, 0.42, "Hitesh Sharma", 20, WHITE, "Aptos", True)
-    add_text(slide, 0.76, 4.92, 4.7, 0.3, "USN: ____________________", 13, MUTED, "Courier New")
+    presenters = [
+        ("Hitesh Sharma", "USN: __________", 0.76),
+        ("Ghanshyam Sharma", "1BM23CS100", 2.18),
+        ("Shreyash Shaurya", "1BM23CS354", 3.78),
+        ("Utkrisht Umang", "1BM23CS355", 5.28),
+    ]
+    for name, usn, x in presenters:
+        add_text(slide, x, 4.38, 1.45, 0.42, name, 10.5, WHITE, "Aptos", True)
+        add_text(slide, x, 4.86, 1.45, 0.25, usn, 7.5, MUTED, "Courier New")
     add_text(slide, 0.76, 5.5, 5.5, 0.3, "Department of Computer Science and Engineering", 11, MUTED)
     add_text(slide, 0.76, 6.1, 5.5, 0.28, "BMS College of Engineering · 2026", 10, MUTED, "Courier New")
     add_panel(slide, 8.1, 1.1, 4.35, 5.35, PANEL, PANEL)

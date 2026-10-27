@@ -56,7 +56,7 @@ def home():
 def health():
     try:
         artifact = load_model()
-        return jsonify({"status": "ok", "model": "TF-IDF word+character features with Logistic Regression", "metadata": artifact["metadata"]})
+        return jsonify({"status": "ok", "model": "Bounded word TF-IDF with Logistic Regression", "metadata": artifact["metadata"]})
     except RuntimeError as error:
         return jsonify({"status": "not_ready", "error": str(error)}), 503
 
@@ -81,7 +81,7 @@ def analyze():
         if score >= 65 else "The model found mixed or limited signals. Compare this claim with independent, reliable sources."
         if score >= 38 else "The model found fewer misleading-language patterns, but this does not prove the claim is true."
     )
-    return jsonify({"score": score, "label": label, "description": description, "signals": language_signals(text), "model": "TF-IDF + Logistic Regression", "metrics": artifact["metadata"]["metrics"]})
+    return jsonify({"score": score, "label": label, "description": description, "signals": language_signals(text), "model": "Bounded word TF-IDF + Logistic Regression", "metrics": artifact["metadata"]["metrics"]})
 
 
 if __name__ == "__main__":

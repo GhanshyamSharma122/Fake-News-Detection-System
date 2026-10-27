@@ -16,10 +16,10 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-Place the reviewed dataset at `data/raw/news.csv`, then train and evaluate:
+Place the reviewed dataset at `data/raw/news.csv`, or use the included ISOT files in `data`, then train and evaluate:
 
 ```powershell
-python training/train_model.py --input data/raw/news.csv
+python training/train_model.py --input data
 python server.py
 ```
 
@@ -39,7 +39,7 @@ The container expects a trained artifact at `models/newslens.joblib`. Never depl
 ```text
 Reviewed dataset → validation → stratified train/test split
                                   ↓
-          spaCy tokenization → word + character TF-IDF
+          spaCy tokenization → bounded word TF-IDF
                                   ↓
                   balanced Logistic Regression model
                                   ↓
@@ -53,8 +53,8 @@ Reviewed dataset → validation → stratified train/test split
 ## NLP and machine-learning mechanisms
 
 1. **Data validation:** required columns, non-empty text, two recognised classes, class balance, and minimum dataset size are checked.
-2. **Preprocessing:** spaCy tokenizes English text. The pipeline preserves text semantics while handling word and character patterns.
-3. **Feature extraction:** word-level TF-IDF captures informative unigrams and bigrams; character n-grams help with spelling variation and exaggerated styling.
+2. **Preprocessing:** spaCy tokenizes English text. The pipeline preserves text semantics while keeping processing lightweight.
+3. **Feature extraction:** bounded word-level TF-IDF captures informative unigrams while keeping memory and training time suitable for a college deployment.
 4. **Classification:** balanced Logistic Regression estimates the probability of the misleading class. Class weighting reduces the effect of imbalance.
 5. **Evaluation:** a stratified held-out split reports accuracy, precision, recall, F1-score, class distribution, and a full classification report.
 6. **Inference:** the API validates JSON and length, loads a fixed artifact, and returns a score, label, model name, and signal explanation.

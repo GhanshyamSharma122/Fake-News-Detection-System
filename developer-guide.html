@@ -27,40 +27,69 @@
       <p><code>python -m venv .venv</code><br><code>.\.venv\Scripts\Activate.ps1</code><br><code>pip install -r requirements.txt</code></p>
       <h3>Prepare and train</h3>
       <p>Place a legitimate labelled CSV at <code>data/raw/news.csv</code>. It must contain <code>text</code> and <code>label</code> columns. See <code>data/README.md</code> for the accepted labels and data requirements.</p>
-      <p><code>python training/train_model.py --input data/raw/news.csv</code></p>
+      <p>For the downloaded Kaggle files stored in this project, run:</p>
+      <p><code>python training/train_model.py --input data</code></p>
+      <p>The trainer reads <code>data/Fake.csv</code> and <code>data/True.csv</code>, combines title and body text, and assigns the labels automatically.</p>
       <h3>Start the application</h3>
       <p><code>python server.py</code></p>
       <p>Open <code>http://127.0.0.1:5000</code> in a browser. The model must be trained before analysis is available.</p>
     </div>
 
-    <h2>2. End-to-end workflow</h2>
+    <h2>2. Recommended genuine datasets</h2>
+    <div class="guide-card">
+      <h3>Recommended starting point: ISOT Fake News Dataset</h3>
+      <p>For this project’s binary article-level classifier, use the <a href="https://www.kaggle.com/datasets/clmentbisaillon/fake-and-real-news-dataset?resource=download" target="_blank" rel="noopener">ISOT Fake News Dataset download</a>. It contains separate <code>Fake.csv</code> and <code>True.csv</code> files with article title, body text, subject, and date. The trainer accepts the downloaded folder directly, combines title and body, assigns labels from the filenames, and records a dataset hash in the model metadata. Document the dataset’s CC BY-NC-SA 4.0 licence and keep the original source information in your report.</p>
+      <h3>Research benchmark: LIAR</h3>
+      <p>For claim-level fact checking, use the <a href="https://aclanthology.org/P17-2067/" target="_blank" rel="noopener">LIAR benchmark paper</a>. It contains about 12.8K manually labelled short statements collected from PolitiFact and uses six truthfulness labels, not a simple fake/real label. It is excellent for an academic experiment, but requires a deliberate label mapping or a six-class model.</p>
+      <h3>Advanced option: FakeNewsNet</h3>
+      <p>For a larger research extension, use the <a href="https://github.com/KaiDMML/FakeNewsNet" target="_blank" rel="noopener">FakeNewsNet repository</a>. It includes article-level samples and identifiers for social context. The complete collection cannot simply be redistributed because of publisher copyright and platform privacy policies, so follow the repository instructions and record exactly which subset was used.</p>
+      <p><strong>Recommendation:</strong> use ISOT for the first binary AAT implementation, use LIAR as a comparison or discussion dataset, and do not mix datasets without checking their different label meanings and time periods.</p>
+    </div>
+
+    <h2>3. Core concept, explained</h2>
+    <div class="guide-card">
+      <h3>What problem are we solving?</h3>
+      <p>A person enters a news headline or article. The system estimates whether its language resembles examples labelled as misleading in the training data. This is a pattern-recognition problem, not a truth machine: the model does not browse the web, check evidence, or understand events like a human fact-checker.</p>
+      <h3>What does the model learn?</h3>
+      <p>First, the text is converted into numbers. Bounded word TF-IDF gives higher weight to informative words that are uncommon across the dataset. Limiting the vocabulary makes the system practical to train and deploy on a college computer while retaining the core NLP concept. These numbers form a feature vector for each article.</p>
+      <h3>How does classification work?</h3>
+      <p>Logistic Regression learns weights for those features using labelled training examples. A positive weight means a feature is associated with the misleading class in the training data; a negative weight means it is more associated with the credible class. At prediction time, the model produces a probability. NewsLens converts that probability into a cautious risk score and asks the reader to verify the source.</p>
+      <h3>Why split training and testing data?</h3>
+      <p>The model must be tested on articles it never saw during training. Otherwise, the score measures memorisation rather than generalisation. A stratified split keeps the class proportions similar, while a separate validation set or cross-validation can be used during model selection. Duplicate articles, syndicated copies, and articles from the same event must be handled carefully to prevent data leakage.</p>
+      <h3>How do we judge quality?</h3>
+      <p>Accuracy alone can be misleading when classes are imbalanced. Precision answers “when the system flags an article, how often is that flag correct?” Recall answers “of the misleading examples, how many did it find?” F1 balances both. The report should include a confusion matrix, per-class results, dataset balance, error examples, and results on a different time or topic split.</p>
+      <h3>Why is human verification still required?</h3>
+      <p>A model can learn publisher identity, political vocabulary, writing style, or dataset artefacts instead of factuality. A legitimate opinion, satire, translated article, or breaking story may be flagged. Therefore the output is a triage signal: inspect the original source, author, publication date, cited evidence, and independent reporting before sharing.</p>
+    </div>
+
+    <h2>4. End-to-end workflow</h2>
     <div class="diagram">DATASET
       ↓
 Validate rows and labels → Stratified train/test split
       ↓
-spaCy tokenization → Word TF-IDF + character TF-IDF
+spaCy tokenization → bounded Word TF-IDF
       ↓
 Logistic Regression training → Metrics + model.joblib
       ↓
 Browser text → POST /api/analyze → Model probability
       ↓
 Risk score + language signals → Human verifies original sources</div>
-    <div class="guide-card"><p><strong>Training:</strong> The training script validates the dataset, creates word and character features, trains a balanced Logistic Regression classifier, evaluates it on held-out data, and saves a model artifact.</p><p><strong>Inference:</strong> The Flask API loads the saved artifact, validates the submitted text, calculates the probability of the misleading class, and returns a label, score, metrics, and supporting signals.</p><p><strong>Review:</strong> The user checks the article’s publisher, author, date, evidence, and independent sources before making a decision.</p></div>
+    <div class="guide-card"><p><strong>Training:</strong> The training script validates the dataset, creates bounded word features, trains a balanced Logistic Regression classifier, evaluates it on held-out data, and saves a model artifact.</p><p><strong>Inference:</strong> The Flask API loads the saved artifact, validates the submitted text, calculates the probability of the misleading class, and returns a label, score, metrics, and supporting signals.</p><p><strong>Review:</strong> The user checks the article’s publisher, author, date, evidence, and independent sources before making a decision.</p></div>
 
-    <h2>3. High-level design (HLD)</h2>
+    <h2>5. High-level design (HLD)</h2>
     <table><thead><tr><th>Component</th><th>Responsibility</th></tr></thead><tbody>
       <tr><td>Web UI</td><td>Accepts news text, displays the score, language signals, warnings, and project documentation.</td></tr>
       <tr><td>Flask API</td><td>Serves the page, validates requests, exposes health status, and performs inference.</td></tr>
-      <tr><td>NLP pipeline</td><td>Uses spaCy tokenization and TF-IDF feature extraction for words and character patterns.</td></tr>
+      <tr><td>NLP pipeline</td><td>Uses spaCy tokenization and bounded word-level TF-IDF feature extraction.</td></tr>
       <tr><td>Classifier</td><td>Logistic Regression estimates the misleading-language probability.</td></tr>
       <tr><td>Model artifact</td><td>Stores the trained pipeline and metadata such as metrics and dataset hash.</td></tr>
       <tr><td>Human reviewer</td><td>Performs final fact-checking; the system is not an autonomous truth engine.</td></tr>
     </tbody></table>
 
-    <h2>4. Low-level design (LLD)</h2>
+    <h2>6. Low-level design (LLD)</h2>
     <div class="guide-card">
       <h3>Training modules</h3>
-      <ul><li><code>load_dataset()</code> reads and validates the CSV.</li><li><code>tokenize_text()</code> in <code>nlp_utils.py</code> supplies the shared spaCy tokenizer.</li><li><code>FeatureUnion</code> combines word n-grams and character n-grams.</li><li><code>LogisticRegression</code> trains the binary classifier.</li><li><code>classification_report</code> calculates evaluation metrics.</li><li><code>joblib.dump()</code> writes the versioned model artifact.</li></ul>
+      <ul><li><code>load_input()</code> reads either a normal labelled CSV or the ISOT <code>Fake.csv</code>/<code>True.csv</code> folder.</li><li><code>tokenize_text()</code> in <code>nlp_utils.py</code> supplies the shared spaCy tokenizer.</li><li><code>TfidfVectorizer</code> creates bounded word unigram features.</li><li><code>LogisticRegression</code> trains the binary classifier.</li><li><code>classification_report</code> calculates evaluation metrics.</li><li><code>joblib.dump()</code> writes the versioned model artifact.</li></ul>
       <h3>API modules</h3>
       <ul><li><code>GET /</code> serves the user interface.</li><li><code>GET /api/health</code> reports whether a valid model is loaded.</li><li><code>POST /api/analyze</code> accepts <code>{"text":"..."}</code> and returns the prediction.</li><li><code>language_signals()</code> adds readable indicators such as sensational words, emphasis, evidence terms, and text statistics.</li></ul>
     </div>
@@ -73,10 +102,12 @@ Risk score + language signals → Human verifies original sources</div>
 6. API maps probability to a cautious label
 7. Browser renders score, signals, and warning</div>
 
-    <h2>5. How to analyse news</h2>
+    <h2>7. How to analyse news</h2>
     <ol><li>Start the trained server.</li><li>Open the NewsLens home page.</li><li>Paste a headline or short article into the text box.</li><li>Select <strong>Analyse text</strong>.</li><li>Read the risk score and the signals that influenced the result.</li><li>Verify the original source and at least one independent reliable source.</li></ol>
 
-    <h2>6. Developer notes</h2>
+    <div class="guide-card"><h3>Local verification completed</h3><p>The downloaded folder contained 44,898 usable articles. The model used 35,918 training rows and 8,980 held-out rows, producing 0.9931 accuracy and 0.9934 F1 on a random stratified split. A real row from <code>True.csv</code> scored 1, and a real row from <code>Fake.csv</code> scored 100. These results are useful for demonstrating the flow, but they are not proof of real-world accuracy; publisher and topic artefacts can make random splits optimistic.</p></div>
+
+    <h2>8. Developer notes</h2>
     <div class="guide-card"><ul><li>Do not train on the small example data or claim high accuracy without a real labelled dataset.</li><li>Do not interpret a high score as proof of fake news or a low score as proof of truth.</li><li>Keep training and test articles separate to prevent data leakage.</li><li>Record dataset source, licence, label definition, class distribution, and metrics in the report.</li><li>For college deployment, use HTTPS and a production WSGI server such as Gunicorn.</li><li>Before public use, add authentication, rate limiting, monitoring, model versioning, and a reviewed data-retention policy.</li></ul></div>
   </main>
 </body>

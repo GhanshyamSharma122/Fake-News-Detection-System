@@ -100,32 +100,35 @@ def add_arrow(slide, x, y, w=0.38, h=0.22, color=GREEN):
 def slide_cover(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     set_background(slide)
-    add_text(slide, 0.72, 0.55, 4.5, 0.3, "NLP APPLICATION / AAT", 10, GREEN, "Courier New", True)
-    add_text(slide, 0.72, 1.6, 7.2, 0.85, "NewsLens", 52, WHITE, "Cambria", True)
-    add_text(slide, 0.76, 2.48, 6.5, 0.8, "Explainable fake news detection\nusing natural language processing", 22, MUTED, "Aptos", False)
-    add_line(slide, 0.76, 3.65, 5.5, 3.65, GREEN, 2)
-    add_text(slide, 0.76, 4.05, 2.2, 0.24, "PRESENTED BY", 9, GREEN, "Courier New", True)
+    # Cover layout follows the reference presentation: centered title,
+    # presenter row, guide row, and institutional footer. The background stays
+    # consistent with the other NewsLens slides.
+    add_text(slide, 1.0, 0.72, 11.35, 1.75,
+             "NewsLens: Explainable Fake News\nDetection Using Natural Language\nProcessing",
+             27, WHITE, "Cambria", True, PP_ALIGN.CENTER, MSO_ANCHOR.MIDDLE, 0.01)
+    add_line(slide, 3.9, 2.78, 6.1, 2.78, GREEN, 1.4)
+    badge = slide.shapes.add_shape(MSO_AUTO_SHAPE_TYPE.HEXAGON, Inches(6.25), Inches(2.56), Inches(0.55), Inches(0.45))
+    badge.fill.solid()
+    badge.fill.fore_color.rgb = BG
+    badge.line.color.rgb = GREEN
+    badge.line.width = Pt(1.2)
+    add_text(slide, 6.25, 2.59, 0.55, 0.33, "N", 12, GREEN, "Courier New", True, PP_ALIGN.CENTER, MSO_ANCHOR.MIDDLE, 0.01)
+    add_line(slide, 7.05, 2.78, 9.43, 2.78, GREEN, 1.4)
+    add_text(slide, 0.8, 3.12, 11.7, 0.25, "PRESENTED BY", 9, GREEN, "Courier New", True, PP_ALIGN.CENTER)
     presenters = [
-        ("Hitesh Sharma", "USN: __________", 0.76),
-        ("Ghanshyam Sharma", "1BM23CS100", 2.18),
-        ("Shreyash Shaurya", "1BM23CS354", 3.78),
-        ("Utkrisht Umang", "1BM23CS355", 5.28),
+        ("Hitesh Sharma", "1BM23CS114", 0.65),
+        ("Ghanshyam Sharma", "1BM23CS100", 3.45),
+        ("Shreyash Shaurya", "1BM23CS354", 6.25),
+        ("Utkrisht Umang", "1BM23CS355", 9.05),
     ]
     for name, usn, x in presenters:
-        add_text(slide, x, 4.38, 1.45, 0.42, name, 10.5, WHITE, "Aptos", True)
-        add_text(slide, x, 4.86, 1.45, 0.25, usn, 7.5, MUTED, "Courier New")
-    add_text(slide, 0.76, 5.5, 5.5, 0.3, "Department of Computer Science and Engineering", 11, MUTED)
-    add_text(slide, 0.76, 6.1, 5.5, 0.28, "BMS College of Engineering · 2026", 10, MUTED, "Courier New")
-    add_panel(slide, 8.1, 1.1, 4.35, 5.35, PANEL, PANEL)
-    add_text(slide, 8.55, 1.55, 3.3, 0.25, "THE QUESTION", 10, GREEN, "Courier New", True)
-    add_text(slide, 8.55, 1.98, 3.25, 0.9, "Can language\nhelp us pause\nbefore sharing?", 25, WHITE, "Cambria", True)
-    for i, (label, value, col) in enumerate((("INPUT", "headline / article", GREEN), ("MODEL", "TF-IDF + Logistic Regression", ORANGE), ("OUTPUT", "score + evidence", GREEN))):
-        yy = 3.55 + i * 0.82
-        add_line(slide, 8.55, yy - 0.12, 11.95, yy - 0.12, MUTED, 0.6)
-        add_text(slide, 8.55, yy, 0.9, 0.2, label, 8, MUTED, "Courier New", True)
-        add_text(slide, 9.55, yy - 0.02, 2.5, 0.27, value, 11, col, "Aptos", True)
-    add_text(slide, 8.55, 5.95, 3.3, 0.25, "HUMAN-IN-THE-LOOP", 9, GREEN, "Courier New", True)
-    add_text(slide, 8.55, 6.18, 3.35, 0.3, "A screening aid, never a truth verdict.", 10, MUTED)
+        add_text(slide, x, 3.55, 2.35, 0.3, name, 11, WHITE, "Aptos", True, PP_ALIGN.CENTER)
+        add_text(slide, x, 3.94, 2.35, 0.23, usn, 8.5, MUTED, "Courier New", False, PP_ALIGN.CENTER)
+    add_text(slide, 0.8, 4.55, 11.7, 0.23, "UNDER THE GUIDANCE OF", 8, GREEN, "Courier New", True, PP_ALIGN.CENTER)
+    add_text(slide, 0.8, 4.82, 11.7, 0.3, "Rajeshwari K", 15, WHITE, "Aptos", True, PP_ALIGN.CENTER)
+    add_text(slide, 0.8, 5.18, 11.7, 0.23, "Associate Professor", 10, MUTED, "Aptos", False, PP_ALIGN.CENTER)
+    add_text(slide, 0.8, 5.72, 11.7, 0.3, "Department of Computer Science and Engineering", 12, WHITE, "Aptos", False, PP_ALIGN.CENTER)
+    add_text(slide, 0.8, 6.14, 11.7, 0.3, "B.M.S. College of Engineering", 11, MUTED, "Aptos", False, PP_ALIGN.CENTER)
 
 
 def slide_problem(prs):
@@ -133,13 +136,13 @@ def slide_problem(prs):
     set_background(slide)
     add_header(slide, "01", "Problem statement and objectives", "2")
     add_label(slide, 0.6, 1.58, "PROBLEM")
-    add_text(slide, 0.6, 1.98, 5.4, 1.25, "Identify language patterns that make a news headline or article deserve verification before it is shared.", 22, WHITE, "Cambria", True)
-    add_text(slide, 0.6, 3.48, 5.2, 1.25, "A sensational claim can look persuasive, while legitimate reporting can be written in urgent language. The system must provide a signal with reasons—not an unsupported verdict.", 13, MUTED)
+    add_text(slide, 0.6, 1.98, 5.4, 1.25, "A user may see a headline before checking the source. NewsLens gives a quick language-based signal for deciding whether the text needs verification.", 22, WHITE, "Cambria", True)
+    add_text(slide, 0.6, 3.48, 5.2, 1.25, "The output is not a fact-check. It is a prediction learned from labelled examples, so a person must still check the publisher, date, author and supporting evidence.", 13, MUTED)
     add_label(slide, 6.95, 1.58, "OBJECTIVES")
     objectives = [
-        "Train on a genuine labelled news dataset with reproducible evaluation.",
-        "Route short headlines and longer articles through suitable models.",
-        "Explain the result and keep a human responsible for verification.",
+        "Train with Fake.csv and True.csv and evaluate on a held-out split.",
+        "Use one model for headlines and another for longer articles.",
+        "Return a score, model name, language signals and a caution message.",
     ]
     for i, objective in enumerate(objectives, 1):
         yy = 2.05 + (i - 1) * 1.22
@@ -147,18 +150,18 @@ def slide_problem(prs):
         add_text(slide, 6.95, yy, 0.62, 0.35, f"0{i}", 16, GREEN, "Courier New", True)
         add_text(slide, 7.7, yy - 0.02, 4.35, 0.68, objective, 13, WHITE, "Aptos", False)
     add_panel(slide, 0.6, 5.75, 11.45, 0.78, PANEL, PANEL)
-    add_text(slide, 0.9, 5.98, 10.9, 0.28, "Scope: English binary screening · local model artifact · Flask API · responsive browser interface", 12, GREEN, "Courier New", True)
+    add_text(slide, 0.9, 5.98, 10.9, 0.28, "Scope: English text · two labels · local model artifact · Flask API · browser interface", 12, GREEN, "Courier New", True)
 
 
 def slide_related(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     set_background(slide)
-    add_header(slide, "02", "Related work and research gap", "3")
-    add_label(slide, 0.6, 1.58, "RELATED WORK", ORANGE)
+    add_header(slide, "02", "NLP terms used in NewsLens", "3")
+    add_label(slide, 0.6, 1.58, "KEY VOCABULARY", ORANGE)
     related = [
-        ("LIAR benchmark", "12.8K manually labelled short statements from PolitiFact; useful for claim-level research."),
-        ("FakeNewsNet", "News content plus social-context research data; collection is constrained by copyright and platform policies."),
-        ("Text classifiers", "TF-IDF and linear models provide a fast, interpretable baseline for an academic deployment."),
+        ("Tokenization", "Splitting the input into words so the vectorizer can process the text."),
+        ("TF-IDF", "Giving more weight to useful words and less weight to words common in many documents."),
+        ("Classification", "Learning a relationship between text features and the two dataset labels."),
     ]
     for i, (title, body) in enumerate(related):
         yy = 2.02 + i * 1.1
@@ -166,13 +169,13 @@ def slide_related(prs):
         add_text(slide, 0.6, yy, 5.7, 0.28, title, 14, WHITE, "Cambria", True)
         add_text(slide, 0.6, yy + 0.34, 5.5, 0.54, body, 10, MUTED)
     add_panel(slide, 6.55, 1.55, 5.5, 4.95, PANEL, PANEL)
-    add_text(slide, 6.95, 1.95, 4.6, 0.25, "OUR CONTRIBUTION", 10, GREEN, "Courier New", True)
-    add_text(slide, 6.95, 2.45, 4.5, 0.35, "Project focus", 17, WHITE, "Cambria", True)
-    add_text(slide, 6.95, 2.86, 4.55, 0.85, "A compact, explainable detector that distinguishes headline inputs from full article inputs and makes uncertainty visible.", 12, MUTED)
+    add_text(slide, 6.95, 1.95, 4.6, 0.25, "IMPLEMENTATION CHOICES", 10, GREEN, "Courier New", True)
+    add_text(slide, 6.95, 2.45, 4.5, 0.35, "Why this baseline?", 17, WHITE, "Cambria", True)
+    add_text(slide, 6.95, 2.86, 4.55, 0.85, "TF-IDF with Logistic Regression is fast to train, simple to inspect and practical for a college web application.", 12, MUTED)
     add_line(slide, 6.95, 4.05, 11.65, 4.05, MUTED, 0.7)
-    add_text(slide, 6.95, 4.38, 4.5, 0.35, "Our approach", 17, WHITE, "Cambria", True)
-    add_text(slide, 6.95, 4.8, 4.55, 1.05, "Use the ISOT dataset, train separate TF-IDF + Logistic Regression pipelines, expose a Flask API, and require human source verification.", 12, MUTED)
-    add_text(slide, 0.6, 6.75, 11.2, 0.28, "Gap addressed: many demos return a label; NewsLens pairs a model output with input-aware routing, provenance, metrics, and ethical guidance.", 10, GREEN, "Courier New", True)
+    add_text(slide, 6.95, 4.38, 4.5, 0.35, "Two input modes", 17, WHITE, "Cambria", True)
+    add_text(slide, 6.95, 4.8, 4.55, 1.05, "A headline uses title text only. A longer input uses title plus article text. The API shows which model was selected.", 12, MUTED)
+    add_text(slide, 0.6, 6.75, 11.2, 0.28, "Important: a high score means the language resembles the fake class in this dataset; it does not prove that the claim is false.", 10, GREEN, "Courier New", True)
 
 
 def slide_architecture(prs):
@@ -180,7 +183,7 @@ def slide_architecture(prs):
     set_background(slide)
     add_header(slide, "03", "System architecture and model flow", "4")
     add_label(slide, 0.6, 1.35, "TRAINING PIPELINE")
-    steps = [("DATA", "Fake.csv\nTrue.csv"), ("NLP", "spaCy\ntokenization"), ("FEATURES", "bounded\nword TF-IDF"), ("MODELS", "headline +\narticle"), ("ARTIFACT", "joblib\nmetadata")]
+    steps = [("DATA", "Fake.csv\nTrue.csv"), ("NLP", "tokenize\ntext"), ("FEATURES", "word\nTF-IDF"), ("MODELS", "headline +\narticle"), ("ARTIFACT", "joblib\nmetadata")]
     start_x = 0.65
     for i, (title, body) in enumerate(steps):
         x = start_x + i * 2.4
@@ -190,7 +193,7 @@ def slide_architecture(prs):
         if i < len(steps) - 1:
             add_arrow(slide, x + 1.95, 2.17, 0.32, 0.2)
     add_label(slide, 0.6, 3.35, "INFERENCE PIPELINE", ORANGE)
-    inference = [("USER TEXT", "headline\nor article"), ("VALIDATE", "type +\nlength"), ("ROUTE", "≤60 words\nheadline"), ("PREDICT", "probability\n+ signals"), ("VERIFY", "human\nsource check")]
+    inference = [("USER TEXT", "headline\nor article"), ("VALIDATE", "type +\nlength"), ("ROUTE", "≤60 words\nheadline"), ("PREDICT", "score +\nsignals"), ("VERIFY", "check\nsource")]
     for i, (title, body) in enumerate(inference):
         x = start_x + i * 2.4
         fill = RGBColor(45, 39, 27) if i == 2 else PANEL
@@ -201,15 +204,15 @@ def slide_architecture(prs):
         if i < len(inference) - 1:
             add_arrow(slide, x + 1.95, 4.17, 0.32, 0.2, ORANGE if i == 2 else GREEN)
     add_panel(slide, 0.65, 5.45, 11.45, 0.78, PANEL, PANEL)
-    add_text(slide, 0.95, 5.68, 10.8, 0.28, "API: GET /api/health  ·  POST /api/analyze  ·  Model loads a saved artifact; startup does not retrain.", 11, WHITE, "Courier New", True, PP_ALIGN.CENTER)
+    add_text(slide, 0.95, 5.68, 10.8, 0.28, "Run: python training/train_model.py --input data  ·  Start: python server.py  ·  API: POST /api/analyze", 10, WHITE, "Courier New", True, PP_ALIGN.CENTER)
 
 
 def slide_results(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     set_background(slide)
-    add_header(slide, "04", "Results and conclusions", "5")
-    add_label(slide, 0.6, 1.45, "MODEL RESULTS")
-    cards = [("ARTICLE MODEL", "99.31%", "accuracy", "99.34% F1", GREEN), ("HEADLINE MODEL", "96.16%", "accuracy", "96.29% F1", ORANGE), ("DATASET", "44,898", "articles", "35,918 train · 8,980 test", GREEN)]
+    add_header(slide, "04", "Evaluation and conclusions", "5")
+    add_label(slide, 0.6, 1.45, "OFFLINE EVALUATION", ORANGE)
+    cards = [("ARTICLE MODEL", "99.31%", "accuracy", "F1: 99.34% · held-out split", GREEN), ("HEADLINE MODEL", "96.16%", "accuracy", "F1: 96.29% · held-out split", ORANGE), ("REAL-WORLD USE", "UNKNOWN", "guaranteed accuracy", "New samples can be misclassified", MUTED)]
     for i, (label, value, small, detail, col) in enumerate(cards):
         x = 0.6 + i * 3.92
         add_panel(slide, x, 1.85, 3.52, 1.35, PANEL, PANEL)
@@ -219,9 +222,9 @@ def slide_results(prs):
         add_text(slide, x + 0.25, 2.92, 3.0, 0.2, detail, 9, MUTED)
     add_label(slide, 0.6, 3.65, "OBSERVATIONS", ORANGE)
     observations = [
-        "Actual labelled rows from True.csv and Fake.csv produced the expected lower-risk and high-risk outcomes.",
-        "Short inputs route to the headline model; full articles route to the article model.",
-        "Random holdout metrics are not proof of real-world factual accuracy; publisher and topic leakage remain risks.",
+        "The dataset contains 44,898 usable articles; 35,918 were used for training and 8,980 for testing.",
+        "The percentages are results from a random split of this dataset, not a promise for unseen news.",
+        "A new sample can be wrong because of topic, source, wording, satire or dataset bias.",
     ]
     for i, text in enumerate(observations, 1):
         yy = 4.0 + (i - 1) * 0.52
@@ -229,8 +232,8 @@ def slide_results(prs):
         add_text(slide, 1.1, yy - 0.02, 5.45, 0.37, text, 10, WHITE)
     add_panel(slide, 6.95, 3.65, 5.1, 2.35, PANEL, PANEL)
     add_text(slide, 7.3, 3.95, 4.4, 0.2, "CONCLUSION", 9, GREEN, "Courier New", True)
-    add_text(slide, 7.3, 4.3, 4.3, 0.88, "NewsLens turns NLP signals into a transparent verification aid—not an autonomous truth engine.", 18, WHITE, "Cambria", True)
-    add_text(slide, 7.3, 5.35, 4.3, 0.38, "Pause · inspect the evidence · verify before sharing.", 11, ORANGE, "Courier New", True)
+    add_text(slide, 7.3, 4.3, 4.3, 0.88, "These metrics describe the experiment, not the truth of a new article.", 18, WHITE, "Cambria", True)
+    add_text(slide, 7.3, 5.35, 4.3, 0.38, "Use the score to start verification, not to replace it.", 11, ORANGE, "Courier New", True)
 
 
 def build():

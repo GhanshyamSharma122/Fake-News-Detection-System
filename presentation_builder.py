@@ -6,13 +6,13 @@ from pptx.util import Inches, Pt
 
 OUTPUT = "NewsLens_AAT_Presentation.pptx"
 W, H = 13.333, 7.5
-BG = RGBColor(16, 20, 26)
-PANEL = RGBColor(28, 35, 44)
-WHITE = RGBColor(238, 240, 243)
-MUTED = RGBColor(174, 184, 196)
-GREEN = RGBColor(198, 244, 50)
-ORANGE = RGBColor(242, 169, 0)
-RED = RGBColor(229, 56, 59)
+BG = RGBColor(255, 255, 255)
+PANEL = RGBColor(240, 244, 248)
+WHITE = RGBColor(16, 42, 67)
+MUTED = RGBColor(72, 96, 117)
+GREEN = RGBColor(23, 107, 77)
+ORANGE = RGBColor(180, 83, 9)
+RED = RGBColor(185, 28, 28)
 
 
 def set_background(slide):
@@ -196,7 +196,7 @@ def slide_architecture(prs):
     inference = [("USER TEXT", "headline\nor article"), ("VALIDATE", "type +\nlength"), ("ROUTE", "≤60 words\nheadline"), ("PREDICT", "score +\nsignals"), ("VERIFY", "check\nsource")]
     for i, (title, body) in enumerate(inference):
         x = start_x + i * 2.4
-        fill = RGBColor(45, 39, 27) if i == 2 else PANEL
+        fill = RGBColor(255, 247, 237) if i == 2 else PANEL
         line = ORANGE if i == 2 else MUTED
         add_panel(slide, x, 3.75, 1.85, 1.05, fill, line)
         add_text(slide, x + 0.1, 3.9, 1.65, 0.2, title, 8, ORANGE if i == 2 else GREEN, "Courier New", True, PP_ALIGN.CENTER)
@@ -212,28 +212,30 @@ def slide_results(prs):
     set_background(slide)
     add_header(slide, "04", "Evaluation and conclusions", "5")
     add_label(slide, 0.6, 1.45, "OFFLINE EVALUATION", ORANGE)
-    cards = [("ARTICLE MODEL", "99.31%", "accuracy", "F1: 99.34% · held-out split", GREEN), ("HEADLINE MODEL", "96.16%", "accuracy", "F1: 96.29% · held-out split", ORANGE), ("REAL-WORLD USE", "UNKNOWN", "guaranteed accuracy", "New samples can be misclassified", MUTED)]
-    for i, (label, value, small, detail, col) in enumerate(cards):
+    cards = [
+        ("ARTICLE MODEL", "Accuracy  99.31%\nPrecision 99.57%\nRecall   99.11%\nF1-score 99.34%", GREEN),
+        ("HEADLINE MODEL", "Accuracy  96.16%\nPrecision 97.32%\nRecall   95.27%\nF1-score 96.29%", ORANGE),
+        ("DATASET SPLIT", "44,898 total\n35,918 train\n8,980 test\n80/20 stratified", GREEN),
+    ]
+    for i, (label, metrics, col) in enumerate(cards):
         x = 0.6 + i * 3.92
-        add_panel(slide, x, 1.85, 3.52, 1.35, PANEL, PANEL)
+        add_panel(slide, x, 1.85, 3.52, 1.62, PANEL, PANEL)
         add_text(slide, x + 0.25, 2.08, 3.0, 0.2, label, 8, col, "Courier New", True)
-        add_text(slide, x + 0.25, 2.36, 1.75, 0.38, value, 25, WHITE, "Cambria", True)
-        add_text(slide, x + 2.0, 2.45, 1.15, 0.22, small, 9, MUTED, "Courier New")
-        add_text(slide, x + 0.25, 2.92, 3.0, 0.2, detail, 9, MUTED)
-    add_label(slide, 0.6, 3.65, "OBSERVATIONS", ORANGE)
+        add_text(slide, x + 0.25, 2.38, 3.0, 0.88, metrics, 11, WHITE, "Courier New", True)
+    add_label(slide, 0.6, 3.75, "OBSERVATIONS", ORANGE)
     observations = [
         "The dataset contains 44,898 usable articles; 35,918 were used for training and 8,980 for testing.",
         "The percentages are results from a random split of this dataset, not a promise for unseen news.",
         "A new sample can be wrong because of topic, source, wording, satire or dataset bias.",
     ]
     for i, text in enumerate(observations, 1):
-        yy = 4.0 + (i - 1) * 0.52
+        yy = 4.1 + (i - 1) * 0.52
         add_text(slide, 0.6, yy, 0.4, 0.23, f"0{i}", 10, GREEN, "Courier New", True)
         add_text(slide, 1.1, yy - 0.02, 5.45, 0.37, text, 10, WHITE)
-    add_panel(slide, 6.95, 3.65, 5.1, 2.35, PANEL, PANEL)
-    add_text(slide, 7.3, 3.95, 4.4, 0.2, "CONCLUSION", 9, GREEN, "Courier New", True)
-    add_text(slide, 7.3, 4.3, 4.3, 0.88, "These metrics describe the experiment, not the truth of a new article.", 18, WHITE, "Cambria", True)
-    add_text(slide, 7.3, 5.35, 4.3, 0.38, "Use the score to start verification, not to replace it.", 11, ORANGE, "Courier New", True)
+    add_panel(slide, 6.95, 3.75, 5.1, 2.25, PANEL, PANEL)
+    add_text(slide, 7.3, 4.02, 4.4, 0.2, "CONCLUSION", 9, GREEN, "Courier New", True)
+    add_text(slide, 7.3, 4.36, 4.3, 0.88, "These metrics describe the experiment, not the truth of a new article.", 18, WHITE, "Cambria", True)
+    add_text(slide, 7.3, 5.4, 4.3, 0.38, "Use the score to start verification, not to replace it.", 11, ORANGE, "Courier New", True)
 
 
 def build():

@@ -6,7 +6,9 @@
 **Department:** Computer Science and Engineering  
 **Course:** Natural Language Processing  
 **Academic year:** 2026  
-**Team members:** *Add names, USNs, section, and guide name here*  
+**Team members:** Hitesh Sharma — 1BM23CS114; Ghanshyam Sharma — 1BM23CS100; Shreyash Shaurya — 1BM23CS354; Utkrisht Umang — 1BM23CS355  
+**Guide:** Rajeshwari K  
+**Section:** ____________________  
 
 ---
 
